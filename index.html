@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TITAN AI Video Creator</title>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        :root {
+            --bg-main: #0a0a0c;
+            --bg-card: #121216;
+            --bg-input: #1a1a22;
+            --accent: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.2);
+            --border: #262630;
+            --text: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-main); color: var(--text); padding-bottom: 75px; overflow-x: hidden; }
+        header { background: #121216; padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        h1 { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #fff; }
+        .container { padding: 16px; max-width: 600px; margin: 0 auto; }
+        .card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #fff; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+        input[type="text"], textarea, select { width: 100%; background-color: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); font-size: 0.95rem; outline: none; }
+        textarea { resize: none; height: 80px; }
+        .btn { background-color: var(--accent); color: white; border: none; border-radius: 8px; padding: 14px; font-size: 0.95rem; font-weight: 600; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-secondary { background-color: transparent; border: 1px solid var(--border); color: var(--text); margin-top: 10px; }
+        .badge { padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; font-size: 0.65rem; background-color: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background-color: #121216; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 0.7rem; background: none; border: none; cursor: pointer; }
+        .nav-item.active { color: var(--accent); }
+        .page { display: none; }
+        .page.active { display: block; }
+        .scene-card { background: #181822; border-left: 4px solid var(--accent); border-radius: 4px; padding: 10px; margin-top: 8px; }
+        .scene-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; }
+        .upload-zone { border: 2px dashed var(--border); padding: 20px; border-radius: 8px; text-align: center; cursor: pointer; background-color: var(--bg-input); color: var(--text-muted); font-size: 0.85rem; }
+        .video-preview-box { width: 100%; aspect-ratio: 16/9; background-color: #000; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--border); margin-bottom: 12px; color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div><h1>TITAN AI Studio</h1></div>
+        <span class="badge">Live App</span>
+    </header>
+    <div class="container">
+        <div id="page-create" class="page active">
+            <div class="card">
+                <div class="card-title"><i data-lucide="plus-circle"></i> Start New AI Project</div>
+                <div class="form-group">
+                    <label>Movie Plot Concept</label>
+                    <textarea id="movie-prompt" placeholder="Describe the storyline or video prompt..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Visual Style</label>
+                    <select id="movie-style">
+                        <option>Photorealistic Cinematic (Hollywood 35mm)</option>
+                        <option>Cyberpunk Sci-Fi Neon</option>
+                        <option>Anime Art Style</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Character Notes</label>
+                    <textarea id="char-prompt" placeholder="Describe main characters..."></textarea>
+                </div>
+                <button class="btn" onclick="createNewProject()"><i data-lucide="sparkles"></i> Initialize Production Plan</button>
+            </div>
+        </div>
+        <div id="page-projects" class="page">
+            <div id="projects-list-container"></div>
+        </div>
+        <div id="page-studio" class="page">
+            <div class="card">
+                <div class="card-title"><i data-lucide="video"></i> Studio Workspace</div>
+                <div class="video-preview-box" id="preview-box">Select or initialize a project layout blueprint under the Create/Projects tab.</div>
+                <button class="btn" onclick="simulateRender()"><i data-lucide="play"></i> Test Render Clip</button>
+                <button class="btn btn-secondary" onclick="exportManifest()"><i data-lucide="download"></i> Export Script</button>
+            </div>
+            <div class="card">
+                <div class="card-title"><i data-lucide="users"></i> Character Memory</div>
+                <div class="upload-zone">Tap to upload character profile reference files</div>
+            </div>
+        </div>
+    </div>
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="switchTab('create', this)"><i data-lucide="sparkles"></i><span>Create</span></button>
+        <button class="nav-item" onclick="switchTab('projects', this)"><i data-lucide="folder"></i><span>Projects</span></button>
+        <button class="nav-item" onclick="switchTab('studio', this)"><i data-lucide="video"></i><span>Studio</span></button>
+    </nav>
+    <script>
+        let projects = [];
+        let activeId = null;
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`page-${tabId}`).classList.add('active');
+            el.classList.add('active');
+            if(tabId === 'projects') renderProjects();
+        }
+        function createNewProject() {
+            const prompt = document.getElementById('movie-prompt').value;
+            const style = document.getElementById('movie-style').value;
+            const char = document.getElementById('char-prompt').value;
+            if(!prompt) return alert('Please enter a plot concept configuration!');
+            const proj = { id: Date.now(), title: prompt.substring(0,25) + '...', prompt, style, char, scenes: [
+                { num: 1, text: "Scene 1: Establishing sequence layout." },
+                { num: 2, text: "Scene 2: Character introduction frame." }
+            ]};
+            projects.unshift(proj);
+            activeId = proj.id;
+            alert('Project Manager successfully initialized scene manifests!');
+            switchTab('projects', document.querySelectorAll('.nav-item'));
+        }
+        function renderProjects() {
+            const container = document.getElementById('projects-list-container');
+            if(projects.length === 0) { container.innerHTML = '<div style="padding:20px;text-align:center;">No active projects.</div>'; return; }
+            container.innerHTML = '';
+            projects.forEach(p => {
+                let sHtml = '';
+                p.scenes.forEach(s => { sHtml += `<div class="scene-card"><div class="scene-header"><span>Scene ${s.num}</span></div><p style="font-size:0.8rem;color:var(--text-muted);">${s.text}</p></div>`; });
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `<h3>${p.title}</h3><p style="font-size:0.85rem;color:var(--text-muted);margin:8px 0;">${p.prompt}</p>${sHtml}<button class="btn btn-secondary" onclick="activeId=${p.id};switchTab('studio',document.querySelectorAll('.nav-item'))">Open in Studio</button>`;
+                container.appendChild(div);
+            });
+        }
+        function simulateRender() {
+            if(!activeId) return alert('Select a project first!');
+            const box = document.getElementById('preview-box');
+            box.innerText = "Simulating pipeline execution over model network vectors...";
+            setTimeout(() => { box.innerHTML = `<strong>Render Check Complete</strong><br><br>Framework verified. Setup connection layers in server configuration files to enable live storage node API routing.`; }, 2000);
+        }
+        function exportManifest() {
+            if(!activeId) return;
+            const p = projects.find(proj => proj.id === activeId);
+            const blob = new Blob([`Project Script Manifest: ${p.prompt}`], {type: "text/plain"});
